@@ -26,28 +26,27 @@ func main() {
 
 	start := time.Now()
 	for _, line := range lines {
-		debug := true
+		debug := false
 		mid := len(line) / 2
 		left := line[:mid]
 		right := line[mid:]
 		if debug {
 			fmt.Printf("left=%s right=%s\n", left, right)
 		}
-		var leftExists = make(map[uint8]bool)
-		var rightExists = make(map[uint8]bool)
-		for i, _ := range make([]int, mid-1) {
-			rightChar := right[i]
-			leftChar := left[i]
-			leftExists[leftChar] = true
-			rightExists[rightChar] = true
-		}
 
-		for k, _ := range leftExists {
-			if _, r := rightExists[k]; r {
-				total += shift(k)
-				if debug {
-					fmt.Printf("k=%d (%s), shifted=%d, total=%d\n\n", k, string(k), shift(k), total)
+		var uniqueMatches = make(map[int]bool)
+		for _, l := range left {
+			for _, r := range right {
+				if l == r {
+					uniqueMatches[shift(uint8(l))] = true
+
 				}
+			}
+		}
+		for u, _ := range uniqueMatches {
+			total += u
+			if debug {
+				fmt.Printf("u=%d total=%d\n\n", u, total)
 			}
 		}
 	}
