@@ -21,12 +21,12 @@ func main() {
 	}
 
 	lines := strings.Split(string(in[:]), "\n")
-	var total int
+	var total int32
 	fmt.Printf("Line count: %d\n", len(lines))
 
 	start := time.Now()
+	debug := true
 	for _, line := range lines {
-		debug := false
 		mid := len(line) / 2
 		left := line[:mid]
 		right := line[mid:]
@@ -34,11 +34,11 @@ func main() {
 			fmt.Printf("left=%s right=%s\n", left, right)
 		}
 
-		var uniqueMatches = make(map[int]bool)
+		var uniqueMatches = make(map[int32]bool)
 		for _, l := range left {
 			for _, r := range right {
 				if l == r {
-					uniqueMatches[shift(uint8(l))] = true
+					uniqueMatches[shift(l)] = true
 
 				}
 			}
@@ -50,18 +50,46 @@ func main() {
 			}
 		}
 	}
+	var badgeSum int32
+	var i int
+	for i = 0; i < len(lines); i += 3 {
+		var g1Chars = make(map[int32]bool)
+		var g2Chars = make(map[int32]bool)
+		var g3Chars = make(map[int32]bool)
+
+		for _, c := range lines[i] {
+			g1Chars[c] = true
+		}
+		for _, c := range lines[i+1] {
+			g2Chars[c] = true
+		}
+		for _, c := range lines[i+2] {
+			g3Chars[c] = true
+		}
+		if debug {
+			fmt.Printf("%v\n%v\n%v\n", g1Chars, g2Chars, g3Chars)
+		}
+		for k, _ := range g1Chars {
+			_, inG2 := g2Chars[k]
+			_, inG3 := g3Chars[k]
+			if inG2 && inG3 {
+				badgeSum += shift(k)
+			}
+		}
+	}
 	done := time.Now()
 	diff := done.Sub(start)
 	fmt.Printf("Execution time: %d µSeconds\n", diff.Microseconds())
 	fmt.Printf("Total: %d\n", total)
+	fmt.Printf("Badge Sum: %d\n", badgeSum)
 }
 
-func shift(r uint8) int {
-	var shifted int
+func shift(r int32) int32 {
+	var shifted int32
 	if r >= 97 {
-		shifted = int(r - 96)
+		shifted = r - 96
 	} else {
-		shifted = int(r - 38)
+		shifted = r - 38
 	}
 	return shifted
 }
