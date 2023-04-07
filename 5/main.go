@@ -67,7 +67,7 @@ func move(instruction string, stacks []*CrateStack) {
 		nextCrate := srcStack.peek()
 		if nextCrate != 0 {
 			crate := srcStack.pop()
-			log.Printf("Crate %v (str: %s)\n", crate, string(crate))
+			log.Printf("Crate %s\n", string(crate))
 			destStack.push(crate)	
 		}
 	}
@@ -120,7 +120,7 @@ func main() {
 
 	// crates are added to the stack in reverse (bottom of the file 
 	// ascending up) order
-	for i := len(crateLines)-2; i > 0; i-- {
+	for i := len(crateLines)-2; i >= 0; i-- {
 		line := crateLines[i]
 		if debug {
 			log.Printf("Line:\n\t%s\n", crateLines[i])
@@ -137,11 +137,13 @@ func main() {
 		}
 	}
 	fmt.Printf("CrateStack start: %s\n", crateStacks)
-	log.Printf("instructions: %d\n", len(instructionLines))
+	log.Printf("CrateStack start: %s\n", crateStacks)
+
 	for _, instruction := range instructionLines {
 		move(instruction, crateStacks)
 	}
 	fmt.Printf("CrateStack end: %+v\n", crateStacks)
+	log.Printf("CrateStack end: %+v\n", crateStacks)
 	fmt.Print("Result: ")
 	for _, cs := range crateStacks {
 		fmt.Print(string(cs.peek()))
