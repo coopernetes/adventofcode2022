@@ -10,12 +10,12 @@ import (
 )
 
 func main() {
-	fmt.Println("Day 4")
+	fmt.Println("Day n")
 	thisDir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-	in, err := os.ReadFile(path.Join(thisDir, "input"))
+	in, err := os.ReadFile(path.Join(thisDir, "input.txt"))
 	if err != nil {
 		log.Fatal(err)
 	}
