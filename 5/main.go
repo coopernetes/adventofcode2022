@@ -15,13 +15,6 @@ type CrateStack struct {
 	position int
 }
 
-func newCrateStack(initialCrates []rune, position int) *CrateStack {
-	return &CrateStack{
-		crates: initialCrates,
-		position: position,
-	}
-}
-
 func (stk *CrateStack) peek() rune {
 	var top rune
 	if len(stk.crates) > 0 {
@@ -37,6 +30,11 @@ func (stk *CrateStack) push(r rune) {
 	stk.crates = newElements
 }
 
+func (stk *CrateStack) pushMany(runes []rune) {
+	newElements := append(stk.crates, runes...)
+	stk.crates = newElements
+}
+
 func (stk *CrateStack) pop() rune {
 	var item rune
 	if (len(stk.crates) > 0) {
@@ -48,14 +46,21 @@ func (stk *CrateStack) pop() rune {
 	return item
 }
 
+func (stk *CrateStack) popOrdered(n int) []rune {
+	items := make([]rune, n)
+	copy(items, stk.crates[len(stk.crates)-n:len(stk.crates)])
+	newElements := make([]rune, len(stk.crates) - n)
+	copy(newElements, stk.crates)
+	stk.crates = newElements
+	return items
+}
+
 func (stk CrateStack) String() string {
 	return fmt.Sprintf("%d:%s", stk.position, string(stk.crates))
 }
 
 
 func move(instruction string, stacks []*CrateStack) {
-	// move 2 from 8 to 2
-	log.Printf("Instruction: %s\n", instruction)
 	parts := strings.SplitN(instruction, " ", 6)
 	cratesToMove, _ := strconv.Atoi(parts[1])
 	srcStackPos, _ := strconv.Atoi(parts[3])
@@ -71,6 +76,20 @@ func move(instruction string, stacks []*CrateStack) {
 			destStack.push(crate)	
 		}
 	}
+	log.Printf("CrateStack: %s\n", stacks)
+}
+
+func moveOrdered(instruction string, stacks []*CrateStack) {
+	parts := strings.SplitN(instruction, " ", 6)
+	cratesToMove, _ := strconv.Atoi(parts[1])
+	srcStackPos, _ := strconv.Atoi(parts[3])
+	destStackPos, _ := strconv.Atoi(parts[5])
+	log.Printf("Moving %d crates from pos %d to %d\n", cratesToMove, srcStackPos, destStackPos)
+	srcStack := stacks[srcStackPos-1]
+	destStack := stacks[destStackPos-1]
+	crates := srcStack.popOrdered(cratesToMove)
+	log.Printf("Crates %s\n", string(crates))
+	destStack.pushMany(crates)
 	log.Printf("CrateStack: %s\n", stacks)
 }
 
@@ -102,16 +121,18 @@ func main() {
 	// at the end of the file (the last line)
 	lastline := crateLines[len(crateLines)-1]
 	log.Println(lastline)
-	var crateStacks []*CrateStack
+	var initialCrateStacks []*CrateStack
 	for _, r := range lastline {
 		log.Println(string(r))
 		pos, err := strconv.Atoi(string(r));
 		if err != nil {
-			log.Print(err)
 			continue
 		}
-		cs := newCrateStack([]rune{}, pos)
-		crateStacks = append(crateStacks, cs)	
+		cs := &CrateStack{
+			crates: []rune{},
+			position: pos,
+		}
+		initialCrateStacks = append(initialCrateStacks, cs)	
 	}
 
 	// each "crate entry" is separated in fixed length columns
@@ -132,22 +153,49 @@ func main() {
 		log.Printf("Entries (len: %d):\n\t%s\n", len(entries), entries)
 		for i, e := range entries {
 			if e != "   " {
-				crateStacks[i].push(rune(e[1]))
+				initialCrateStacks[i].push(rune(e[1]))
 			}
 		}
 	}
-	fmt.Printf("CrateStack start: %s\n", crateStacks)
-	log.Printf("CrateStack start: %s\n", crateStacks)
+	fmt.Printf("CrateStack start: %s\n", initialCrateStacks)
+	log.Printf("CrateStack start: %s\n", initialCrateStacks)
 
+	// part 1
+	crates := make([]*CrateStack, len(initialCrateStacks))
+	for i, c := range initialCrateStacks {
+		v := *c
+		crates[i] = &v
+	}
 	for _, instruction := range instructionLines {
-		move(instruction, crateStacks)
+		move(instruction, crates)
 	}
-	fmt.Printf("CrateStack end: %+v\n", crateStacks)
-	log.Printf("CrateStack end: %+v\n", crateStacks)
-	fmt.Print("Result: ")
-	for _, cs := range crateStacks {
-		fmt.Print(string(cs.peek()))
+	fmt.Printf("Part 1 CrateStack end: %+v\n", crates)
+	log.Printf("Part 1 CrateStack end: %+v\n", crates)
+	fmt.Print("Part 1 Result: ")
+	for _, cs := range crates {
+		if cs.peek() != 0 {
+			fmt.Print(string(cs.peek()))
+		}
 	}
+	fmt.Println()
+	// part 2
+	groupedCrates := make([]*CrateStack, len(initialCrateStacks))
+	for i, c := range initialCrateStacks {
+		v := *c
+		groupedCrates[i] = &v
+	}
+	for _, instruction := range instructionLines[:] {
+		moveOrdered(instruction, groupedCrates)
+	}
+	fmt.Printf("Part 2 CrateStack end: %s\n", groupedCrates)
+	log.Printf("Part 2 CrateStack end: %s\n", groupedCrates)
+	fmt.Print("Part 2 Result: ")
+	for _, cs := range groupedCrates {
+		if cs.peek() != 0 {
+			fmt.Print(string(cs.peek()))
+		}
+	}
+
 	done := time.Now()
 	diff := done.Sub(start)
 	log.Printf("\nExecution time: %d µSeconds\n", diff.Microseconds())
