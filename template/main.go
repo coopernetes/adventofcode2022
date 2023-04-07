@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Day n")
+	log.Println("Day n")
 	thisDir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
@@ -32,5 +32,5 @@ func main() {
 
 	done := time.Now()
 	diff := done.Sub(start)
-	fmt.Printf("Execution time: %d µSeconds\n", diff.Microseconds())
+	log.Printf("Execution time: %d µSeconds\n", diff.Microseconds())
 }
